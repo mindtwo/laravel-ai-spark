@@ -5,6 +5,7 @@ namespace mindtwo\LaravelAiSpark\Attachments\Renderers;
 use Imagick;
 use ImagickException;
 use mindtwo\LaravelAiSpark\Exceptions\UnsupportedAttachmentException;
+use Symfony\Component\Process\ExecutableFinder;
 
 /**
  * Renders pages with the Imagick extension. Imagick delegates PDFs to Ghostscript, which must be installed.
@@ -26,7 +27,7 @@ class ImagickRenderer implements PdfRenderer
      */
     public function isAvailable(): bool
     {
-        if (! extension_loaded('imagick')) {
+        if (! extension_loaded('imagick') || ! $this->ghostscriptInstalled()) {
             return false;
         }
 
@@ -38,6 +39,22 @@ class ImagickRenderer implements PdfRenderer
         } catch (ImagickException) {
             return false;
         }
+    }
+
+    /**
+     * Checked up front, otherwise ImageMagick's delegate prints "gs: command not found" to stderr.
+     */
+    protected function ghostscriptInstalled(): bool
+    {
+        $finder = new ExecutableFinder;
+
+        foreach (['gs', 'gswin64c', 'gswin32c'] as $binary) {
+            if ($finder->find($binary) !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function render(string $pdf, string $filename, int $maxPages, int $dpi): array

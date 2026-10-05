@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-ai-spark` will be documented in this file.
 
+## 1.1.1 - 2026-10-05
+
+- Imagick is only reported as available when Ghostscript is installed; the probe no longer prints `gs: command not found`.
+
 ## 1.1.0 - 2026-10-05
 
 - Document attachments are converted before the request, since vLLM rejects `file` content parts. Previously every document attachment failed with a 400.
