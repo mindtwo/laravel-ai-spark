@@ -1,0 +1,72 @@
+{
+    "name": "mindtwo/laravel-ai-spark",
+    "type": "library",
+    "description": "Laravel AI SDK driver for self-hosted, OpenAI-compatible vLLM servers such as the NVIDIA DGX Spark, with Cloudflare Access support.",
+    "keywords": [
+        "laravel",
+        "laravel-ai",
+        "prism",
+        "vllm",
+        "nvidia",
+        "dgx-spark",
+        "llm",
+        "cloudflare-access"
+    ],
+    "homepage": "https://github.com/mindtwo/laravel-ai-spark",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "mindtwo GmbH",
+            "email": "info@mindtwo.de",
+            "homepage": "https://www.mindtwo.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "illuminate/contracts": "^12.0|^13.0",
+        "illuminate/http": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0",
+        "laravel/ai": "^0.3",
+        "prism-php/prism": "^0.99.22"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.17",
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "mindtwo\\LaravelAiSpark\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "mindtwo\\LaravelAiSpark\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "analyse": "phpstan analyse",
+        "format": "pint"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        },
+        "laravel": {
+            "providers": [
+                "mindtwo\\LaravelAiSpark\\SparkServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
