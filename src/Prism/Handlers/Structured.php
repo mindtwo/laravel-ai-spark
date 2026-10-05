@@ -4,8 +4,8 @@ namespace mindtwo\LaravelAiSpark\Prism\Handlers;
 
 use Illuminate\Http\Client\Response;
 use mindtwo\LaravelAiSpark\Prism\Concerns\BuildsRequestOptions;
+use mindtwo\LaravelAiSpark\Prism\Maps\MessageMap;
 use Prism\Prism\Providers\OpenRouter\Handlers\Structured as OpenRouterStructured;
-use Prism\Prism\Providers\OpenRouter\Maps\MessageMap;
 use Prism\Prism\Structured\Request;
 
 /**

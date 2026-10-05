@@ -1,0 +1,4 @@
+providers:
+  - Prism\Prism\PrismServiceProvider
+  - Laravel\Ai\AiServiceProvider
+  - mindtwo\LaravelAiSpark\SparkServiceProvider

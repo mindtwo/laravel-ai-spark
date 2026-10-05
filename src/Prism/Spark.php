@@ -5,6 +5,9 @@ namespace mindtwo\LaravelAiSpark\Prism;
 use Generator;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
+use mindtwo\LaravelAiSpark\Attachments\AttachmentOptions;
+use mindtwo\LaravelAiSpark\Attachments\DocumentConverter;
+use mindtwo\LaravelAiSpark\Concerns\FailsOnRedirect;
 use mindtwo\LaravelAiSpark\Prism\Handlers\Stream;
 use mindtwo\LaravelAiSpark\Prism\Handlers\Structured;
 use mindtwo\LaravelAiSpark\Prism\Handlers\Text;
@@ -21,7 +24,6 @@ use Prism\Prism\Structured\Request as StructuredRequest;
 use Prism\Prism\Structured\Response as StructuredResponse;
 use Prism\Prism\Text\Request as TextRequest;
 use Prism\Prism\Text\Response as TextResponse;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * Prism provider for an OpenAI-compatible vLLM server (`/v1/chat/completions`).
@@ -33,6 +35,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 class Spark extends Provider
 {
+    use FailsOnRedirect;
     use InitializesClient;
 
     /**
@@ -44,12 +47,14 @@ class Spark extends Provider
         public readonly string $url,
         #[\SensitiveParameter] public readonly array $headers = [],
         public readonly array $defaultOptions = [],
+        public readonly AttachmentOptions $attachments = new AttachmentOptions,
+        protected DocumentConverter $documents = new DocumentConverter,
     ) {}
 
     #[\Override]
     public function text(TextRequest $request): TextResponse
     {
-        $this->applyDefaultOptions($request);
+        $this->prepare($request);
 
         return (new Text($this->client($request->clientOptions(), $request->clientRetry())))->handle($request);
     }
@@ -57,7 +62,7 @@ class Spark extends Provider
     #[\Override]
     public function structured(StructuredRequest $request): StructuredResponse
     {
-        $this->applyDefaultOptions($request);
+        $this->prepare($request);
 
         return (new Structured($this->client($request->clientOptions(), $request->clientRetry())))->handle($request);
     }
@@ -65,7 +70,7 @@ class Spark extends Provider
     #[\Override]
     public function stream(TextRequest $request): Generator
     {
-        $this->applyDefaultOptions($request);
+        $this->prepare($request);
 
         return (new Stream($this->client($request->clientOptions(), $request->clientRetry())))->handle($request);
     }
@@ -101,6 +106,27 @@ class Spark extends Provider
     }
 
     /**
+     * Convert documents into parts vLLM accepts and apply the body defaults.
+     *
+     * An agent may override the attachment settings with an `attachments` provider option.
+     * It is consumed here and removed, because vLLM does not know the field.
+     */
+    protected function prepare(TextRequest|StructuredRequest $request): void
+    {
+        $providerOptions = $request->providerOptions() ?? [];
+        $overrides = $providerOptions['attachments'] ?? [];
+        unset($providerOptions['attachments']);
+        $request->withProviderOptions($providerOptions);
+
+        $this->documents->convertMessages(
+            $request->messages(),
+            $this->attachments->merge(is_array($overrides) ? $overrides : ['pdf' => $overrides]),
+        );
+
+        $this->applyDefaultOptions($request);
+    }
+
+    /**
      * Merge the configured body defaults beneath the request's own provider options.
      */
     protected function applyDefaultOptions(TextRequest|StructuredRequest $request): void
@@ -128,24 +154,5 @@ class Spark extends Provider
             ->withResponseMiddleware($this->failOnRedirect(...))
             ->when($retry !== [], fn (PendingRequest $client) => $client->retry(...$retry))
             ->baseUrl($baseUrl ?? $this->url);
-    }
-
-    /**
-     * Cloudflare Access answers an unauthenticated request with a redirect to its login
-     * page instead of an error status. Fail loudly rather than parsing HTML as JSON.
-     */
-    protected function failOnRedirect(ResponseInterface $response): ResponseInterface
-    {
-        $status = $response->getStatusCode();
-
-        if ($status >= 300 && $status < 400) {
-            throw PrismException::providerResponseError(sprintf(
-                'Spark redirected the request (%d to %s). Cloudflare Access most likely rejected the service token.',
-                $status,
-                $response->getHeaderLine('Location') ?: 'unknown location',
-            ));
-        }
-
-        return $response;
     }
 }

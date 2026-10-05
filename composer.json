@@ -24,8 +24,10 @@
     ],
     "require": {
         "php": "^8.3",
+        "illuminate/console": "^12.0|^13.0",
         "illuminate/contracts": "^12.0|^13.0",
         "illuminate/http": "^12.0|^13.0",
+        "illuminate/process": "^12.0|^13.0",
         "illuminate/support": "^12.0|^13.0",
         "laravel/ai": "^0.3",
         "prism-php/prism": "^0.99.22"
@@ -34,7 +36,12 @@
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.17",
         "orchestra/testbench": "^10.0|^11.0",
-        "pestphp/pest": "^4.0"
+        "pestphp/pest": "^4.0",
+        "smalot/pdfparser": "^2.12"
+    },
+    "suggest": {
+        "smalot/pdfparser": "PDF text layer extraction for attachments.pdf \"text\" and \"both\" (^2.12).",
+        "ext-imagick": "Renders PDF pages to images for attachments.pdf \"images\" and \"both\"; needs Ghostscript. Alternatively install poppler for pdftoppm."
     },
     "autoload": {
         "psr-4": {

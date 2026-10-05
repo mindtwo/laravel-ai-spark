@@ -51,6 +51,29 @@ return [
     ],
 
     /*
+    | vLLM accepts no file attachments, so documents are converted before
+    | the request. PDFs: "text" sends the text layer (needs the optional
+    | smalot/pdfparser), "images" renders every page for a vision-capable
+    | model, "both" sends text and page images. Rendering uses poppler's
+    | pdftoppm or Imagick with Ghostscript; "auto" picks the first found.
+    | Agents can override this with an `attachments` provider option.
+    */
+
+    'attachments' => [
+        'pdf' => env('SPARK_PDF_MODE', 'text'),
+        'renderer' => env('SPARK_PDF_RENDERER', 'auto'),
+        'pdftoppm' => env('SPARK_PDFTOPPM_PATH', 'pdftoppm'),
+        'max_pages' => (int) env('SPARK_PDF_MAX_PAGES', 20),
+        'dpi' => (int) env('SPARK_PDF_DPI', 144),
+    ],
+
+    /*
+    | Timeout in seconds for the server utilities (health, tokenize, batch).
+    */
+
+    'timeout' => (int) env('SPARK_TIMEOUT', 120),
+
+    /*
     | vLLM usually serves a single model, so cheapest and smartest fall back
     | to the default. The name must match vLLM's --served-model-name.
     */
